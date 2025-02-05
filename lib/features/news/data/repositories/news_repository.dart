@@ -2,17 +2,22 @@ import 'package:dio/dio.dart';
 import '../models/news.dart';
 
 class NewsRepository {
-  final Dio dio = Dio();
+  final Dio dio;
+
+  NewsRepository({required this.dio});
 
   Future<List<News>> fetchNews() async {
     try {
-      final response1 = await dio.get('https://exams2.masqed.ru/api1'); 
-      final response2 = await dio.get('https://exams2.masqed.ru/api2'); 
+      final responses = await Future.wait([
+        dio.get('https://exams2.masqed.ru/api1'),
+        dio.get('https://exams2.masqed.ru/api2'),
+      ]);
 
-      List<News> newsFromApi1 = (response1.data as List)
+      List<News> newsFromApi1 = (responses[0].data as List)
           .map((data) => News.fromApi1(data))
           .toList();
-      List<News> newsFromApi2 = (response2.data['newsLine'] as List)
+
+      List<News> newsFromApi2 = (responses[1].data['newsLine'] as List)
           .map((data) => News.fromApi2(data))
           .toList();
 
@@ -21,7 +26,7 @@ class NewsRepository {
       allNews.sort((a, b) {
         if (a.isHot && !b.isHot) return -1;
         if (!a.isHot && b.isHot) return 1;
-        return b.date.compareTo(a.date); 
+        return b.date.compareTo(a.date);
       });
 
       return allNews;

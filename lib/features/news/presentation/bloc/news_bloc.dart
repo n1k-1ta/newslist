@@ -8,11 +8,12 @@ part 'news_state.dart';
 class NewsCubit extends Cubit<NewsState> {
   final NewsRepository repository;
 
-  NewsCubit({required this.repository}) : super(NewsInitial());
+  NewsCubit({required this.repository}) : super(NewsLoading()) {
+    fetchNews(); 
+  }
 
   Future<void> fetchNews() async {
     try {
-      emit(NewsLoading());
       final news = await repository.fetchNews();
       emit(NewsLoaded(news: news));
     } catch (e) {

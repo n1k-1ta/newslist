@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:newslist/features/news/data/repositories/news_repository.dart';
 import '../bloc/news_bloc.dart';
 import '../widgets/news_item.dart';
+import 'package:newslist/di/locator.dart';
 
 class NewsScreen extends StatelessWidget {
   @override
@@ -10,7 +11,7 @@ class NewsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('News')),
       body: BlocProvider(
-        create: (_) => NewsCubit(repository: NewsRepository())..fetchNews(),
+        create: (_) => NewsCubit(repository: locator<NewsRepository>()),
         child: BlocBuilder<NewsCubit, NewsState>(
           builder: (context, state) {
             if (state is NewsLoading) {
@@ -19,11 +20,14 @@ class NewsScreen extends StatelessWidget {
               return Center(child: Text(state.message));
             } else if (state is NewsLoaded) {
               final news = state.news;
-              return ListView.builder(
-                itemCount: news.length,
-                itemBuilder: (context, index) {
-                  return NewsItem(news: news[index]);
-                },
+              return RefreshIndicator(
+                onRefresh: () => context.read<NewsCubit>().fetchNews(),
+                child: ListView.builder(
+                  itemCount: news.length,
+                  itemBuilder: (context, index) {
+                    return NewsItem(news: news[index]);
+                  },
+                ),
               );
             }
             return Container();
